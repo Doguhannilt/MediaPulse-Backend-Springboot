@@ -1,5 +1,6 @@
 package com.mediapulse.springboot.models;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.lang.reflect.Array;
@@ -9,6 +10,8 @@ import java.util.List;
 public class User {
     // name String, username String Unique, email String Unique, password String minLength:6, profilePic String, followers [string], following [string],bio String,
 
+    @Id
+    private String id;
     private String name;
     private String username;
     private String email;
@@ -22,7 +25,15 @@ public class User {
     public User() {
     }
 
-    public User(String name, String username, String email, String password, String profilePic, List<String> followers, List<String> following, String bio) {
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public User(String name, String username, String id,String email, String password, String profilePic, List<String> followers, List<String> following, String bio) {
         this.name = name;
         this.username = username;
         this.email = email;
@@ -31,6 +42,7 @@ public class User {
         this.followers = followers;
         this.following = following;
         this.bio = bio;
+        this.id = id;
     }
 
     @Override
@@ -110,4 +122,6 @@ public class User {
     public void setBio(String bio) {
         this.bio = bio;
     }
+
+
 }
