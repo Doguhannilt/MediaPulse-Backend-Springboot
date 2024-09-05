@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.mediapulse.springboot.repository.userRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -22,7 +23,8 @@ public class PostService {
     private postRepository repo;
     @Autowired
     private userRepository userRepository;
-
+    @Autowired
+    private Reply newReply;
 
     public ResponseEntity<Post> savePost(Post post) {
         try {
@@ -68,6 +70,71 @@ public class PostService {
         return new ResponseEntity<>(find, HttpStatus.OK);
     }
 
-    // likeAndUnlikePosts
-    // replyPost
+    public ResponseEntity<String> likePost(String postId, String userId) {
+        try {
+            // Fetch the post by ID
+            Optional<Post> optionalPost = repo.findById(postId);
+            if (optionalPost.isEmpty()) {
+                return new ResponseEntity<>("Post not found", HttpStatus.BAD_REQUEST);
+            }
+
+            Post post = optionalPost.get();
+
+            // Check if the user has already liked the post
+            boolean userLikedPost = post.getLikes().stream()
+                    .anyMatch(user -> user.getId().equals(userId));
+
+            if (userLikedPost) {
+                // Unlike the post (remove user from the likes list)
+                post.getLikes().removeIf(user -> user.getId().equals(userId));
+                repo.save(post);
+                return new ResponseEntity<>("Post unliked successfully", HttpStatus.OK);
+            } else {
+                // Like the post (add user to the likes list)
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+                post.getLikes().add(user);
+                repo.save(post);
+                return new ResponseEntity<>("Post liked successfully", HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public String replyToPost(String postId, String userId, Map<String, String> requestBody) {
+        String text = requestBody.get("text");
+
+        if (text == null || text.trim().isEmpty()) {
+            throw new IllegalArgumentException("Text is required");
+        }
+
+        if (text.length() < 5) {
+            throw new IllegalArgumentException("Text must be at least 5 characters");
+        }
+
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+
+        Post post = repo.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+
+        newReply.setText(text);
+        newReply.setUserId(user);
+        newReply.setUserProfilePic(user.getProfilePic());
+        newReply.setUsername(user.getUsername());
+
+        // Cevabı gönderiye ekle
+        post.getReplies().add(newReply);
+
+        // Güncellenen gönderiyi kaydet
+        repo.save(post);
+
+        return "Reply posted successfully";
+    }
+
 }

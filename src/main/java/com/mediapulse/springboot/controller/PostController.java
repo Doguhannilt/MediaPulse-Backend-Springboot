@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @SuppressWarnings("unused")
@@ -43,5 +44,26 @@ public class PostController {
     @DeleteMapping("/save/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable("id") String id){
         return service.deletePost(id);
+    }
+
+    @PostMapping("/likes/{id}")
+    public ResponseEntity<String> likePost(@PathVariable("id") String id, @RequestParam String userId) {
+        return service.likePost(id, userId);
+    }
+
+    @PostMapping("/{id}/reply")
+    public ResponseEntity<String> replyPost(@PathVariable("id") String postId,
+                                            @RequestParam String userId,
+                                            @RequestBody Map<String, String> requestBody) {
+        try {
+
+            String responseMessage = service.replyToPost(postId, userId, requestBody);
+            return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

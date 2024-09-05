@@ -20,14 +20,12 @@ public class SecurityConfig {
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {        http
-            .csrf(csrf -> csrf.disable())  // CSRF korumasını devre dışı bırak
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
             .authorizeRequests(authorizeRequests ->
                     authorizeRequests
-                            .anyRequest().permitAll()  // Tüm isteklere erişim izni ver
+                            .anyRequest().permitAll()
             );
-
         return http.build();
     }
-
 }
